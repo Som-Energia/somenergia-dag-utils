@@ -2,6 +2,8 @@ from airflow.operators.python_operator import BranchPythonOperator
 from airflow import DAG
 import os.path
 
+# TODO finish this
+
 def get_server_environment():
     if os.path.exists(f'/opt/airflow/repos/.env.prod'):
         return 'is_prod'

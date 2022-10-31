@@ -17,7 +17,9 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
     # si stderr té més de 0 \n és que hi ha canvis al fer pull
     #Your configuration specifies to merge with the ref 'refs/heads/main' from the remote, but no such ref was fetched.
     #Apareix quan fem molts git pull a la vegada
-    return "image_remove" if txt_stderr.count('\n')>0 and not 'no such ref was fetched' in txt_stderr else task_name
+
+    # image removal and build is not working atm
+    return task_name
 
 def build_branch_pull_ssh_task(dag: DAG, task_name, repo_github_name) -> BranchPythonOperator:
     branch_pull_ssh_task = BranchPythonOperator(

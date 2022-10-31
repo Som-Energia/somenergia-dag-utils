@@ -3,6 +3,8 @@ from airflow import DAG
 import paramiko
 import io
 
+class UpdateImageError(Exception): pass
+
 def update_docker_image_from_host_via_ssh(repo_server_key, repo_server_url, repo_name, moll_url, docker_registry):
     '''
     airflow is running in its container, so we need to connect to the host
@@ -17,14 +19,19 @@ def update_docker_image_from_host_via_ssh(repo_server_key, repo_server_url, repo
     '''
     dockerfile = f'/opt/airflow/repos/{repo_name}/Dockerfile'
     docker_registry_tag = f'{docker_registry}/{repo_name}'
+    docker_build_push_script = '/opt/airflow/repos/docker-build-push/docker-build-push.py'
+
     p = paramiko.SSHClient()
     p.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     keyfile = io.StringIO(repo_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
     p.connect(repo_server_url, port=2200, username="airflow", pkey=mykey)
-    result = p.exec_command(f"python3 /opt/airflow/repos/docker-build-push/docker-build-push.py {moll_url} {dockerfile} {docker_registry_tag}")
-    print(result)
+    result = p.exec_command(f"python3 {docker_build_push_script} {moll_url} {dockerfile} {docker_registry_tag} 2>&1")
+    # assuming output is sent to stdout and exceptions to stderr
     # TODO parse result for raises
+    print(result)
+    if result:
+        raise UpdateImageError(result)
     return 0
 
 

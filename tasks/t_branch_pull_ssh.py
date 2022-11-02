@@ -20,7 +20,7 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
         raise GitPullError(txt_stderr)
 
     stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
-    txt_stderr = stdout.readlines()
+    txt_stdout = stdout.readlines()
     txt_stdout = "".join(txt_stdout)
     requirements_updated = len(txt_stdout) > 0
     if txt_stderr:

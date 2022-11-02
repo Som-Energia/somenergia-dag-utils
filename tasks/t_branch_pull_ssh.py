@@ -11,14 +11,14 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
     keyfile = io.StringIO(repo_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
     p.connect(repo_server_url, port=2200, username="airflow", pkey=mykey)
-    stdin, stdout, stderr = p.exec_command(f"git  -C /opt/airflow/repos/{repo_github_name} fetch && git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
+    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} fetch && git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
     txt_stderr = stderr.readlines()
     txt_stdout = stdout.readlines()
     txt_stdout = "".join(txt_stdout)
     requirements_updated = len(txt_stdout) > 0
     if txt_stderr:
-        print (f"Stderr de git diff requirements retornat {stderr.readlines()}")
-        raise GitPullError
+        print (f"Stderr of git diff requirements returned {txt_stderr}. {bool(txt_stderr)}")
+        raise GitPullError(txt_stderr)
     if requirements_updated:
         print (f"Stdout de git diff requirements retornat {txt_stdout} and needs update")
     else:

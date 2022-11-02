@@ -3,6 +3,7 @@ from airflow import DAG
 import paramiko
 import io
 
+class GitPullError(Exception): pass
 
 def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name):
     p = paramiko.SSHClient()
@@ -10,14 +11,17 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
     keyfile = io.StringIO(repo_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
     p.connect(repo_server_url, port=2200, username="airflow", pkey=mykey)
-    _, _, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
-    txt_stderr = stderr.readlines()
-    txt_stderr = "".join(txt_stderr)
-    requirements_updated = len(txt_stderr) > 0
+    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
+    txt_stdout = stdout.readlines()
+    txt_stdout = "".join(txt_stdout)
+    requirements_updated = len(txt_stdout) > 0
+    if stderr:
+        print (f"Stderr de git diff requirements retornat {stderr.readlines()}")
+        raise GitPullError
     if requirements_updated:
-        print (f"Stderr de git diff requirements retornat {txt_stderr} and requires image update")
+        print (f"Stdout de git diff requirements retornat {txt_stdout} and needs update")
     else:
-        print (f"Stderr de git diff requirements no ha retornat cap missatge {txt_stderr}")
+        print (f"Stdout de git diff requirements no ha retornat cap missatge {txt_stdout}. stdout {stdout.readlines()}")
     stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} pull")
     txt_stderr = stderr.readlines()
     txt_stderr = "".join(txt_stderr)

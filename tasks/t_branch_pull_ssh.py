@@ -10,6 +10,14 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
     keyfile = io.StringIO(repo_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
     p.connect(repo_server_url, port=2200, username="airflow", pkey=mykey)
+    _, _, stderr = "git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt"
+    txt_stderr = stderr.readlines()
+    txt_stderr = "".join(txt_stderr)
+    requirements_updated = len(txt_stderr) > 0
+    if requirements_updated:
+        print (f"Stderr de git diff requirements retornat {txt_stderr} and requires image update")
+    else:
+        print (f"Stderr de git diff requirements no ha retornat cap missatge {txt_stderr}")
     stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} pull")
     txt_stderr = stderr.readlines()
     txt_stderr = "".join(txt_stderr)
@@ -19,7 +27,10 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
     #Apareix quan fem molts git pull a la vegada
 
     # image removal and build is not working atm
-    return task_name
+    if '{{ dag.dag_id }}' == 'hs_conversations_dag':
+        return 'update_docker_image' if requirements_updated else task_name
+    else:
+        return task_name
 
 def build_branch_pull_ssh_task(dag: DAG, task_name, repo_github_name) -> BranchPythonOperator:
     branch_pull_ssh_task = BranchPythonOperator(

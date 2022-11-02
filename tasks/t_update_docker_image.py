@@ -37,7 +37,7 @@ def update_docker_image_from_host_via_ssh(repo_server_key, repo_server_url, repo
 
 def build_update_image_task(dag: DAG, repo_name) -> PythonOperator:
     update_image_task = PythonOperator(
-        task_id='git_clone_ssh_task',
+        task_id='update_docker_image',
         python_callable=update_docker_image_from_host_via_ssh,
         op_kwargs={
             "repo_name": repo_name,

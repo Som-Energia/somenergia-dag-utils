@@ -15,7 +15,7 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
     txt_stderr = stderr.readlines()
 
     # TODO might be too fragile
-    if txt_stderr and (not txt_stderr[0].startswith('remote') or txt_stderr[0].startswith('From')):
+    if txt_stderr and not (txt_stderr[0].startswith('remote') or txt_stderr[0].startswith('From')):
         print (f"Stderr of git fetch returned {txt_stderr} and {stdout.readlines()}. {bool(txt_stderr)}")
         raise GitPullError(txt_stderr)
 

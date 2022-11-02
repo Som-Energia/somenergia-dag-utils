@@ -11,7 +11,15 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
     keyfile = io.StringIO(repo_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
     p.connect(repo_server_url, port=2200, username="airflow", pkey=mykey)
-    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} fetch && git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
+    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} fetch")
+    txt_stderr = stderr.readlines()
+
+    # TODO might be too fragile
+    if txt_stderr and not txt_stderr[0].startswith('remote'):
+        print (f"Stderr of git fetch returned {txt_stderr} and {stdout.readlines()}. {bool(txt_stderr)}")
+        raise GitPullError(txt_stderr)
+
+    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
     txt_stderr = stdout.readlines()
     txt_stdout = "".join(txt_stdout)
     requirements_updated = len(txt_stdout) > 0

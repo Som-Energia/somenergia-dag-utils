@@ -26,7 +26,9 @@ def update_docker_image_from_host_via_ssh(host_server_key, host_server_url, repo
     keyfile = io.StringIO(host_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
     p.connect(host_server_url, port=2200, username="airflow", pkey=mykey)
-    stdin, stdout, stderr = p.exec_command(f"python3 {docker_build_push_script} {moll_url} {dockerfile} {docker_registry_tag}")
+    cmd = f"python3 {docker_build_push_script} {moll_url} {dockerfile} {docker_registry_tag}"
+    print(f"Command: {cmd}")
+    stdin, stdout, stderr = p.exec_command(cmd)
     # assuming output is sent to stdout and exceptions to stderr
     # TODO parse result for raises
     txt_stderr = stderr.readlines()

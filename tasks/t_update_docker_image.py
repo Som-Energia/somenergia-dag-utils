@@ -5,7 +5,7 @@ import io
 
 class UpdateImageError(Exception): pass
 
-def update_docker_image_from_host_via_ssh(repo_server_key, repo_server_url, repo_name, moll_url, docker_registry):
+def update_docker_image_from_host_via_ssh(host_server_key, host_server_url, repo_name, moll_url, docker_registry):
     '''
     airflow is running in its container, so we need to connect to the host
     which has the python docker script that works.
@@ -23,9 +23,9 @@ def update_docker_image_from_host_via_ssh(repo_server_key, repo_server_url, repo
 
     p = paramiko.SSHClient()
     p.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    keyfile = io.StringIO(repo_server_key)
+    keyfile = io.StringIO(host_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
-    p.connect(repo_server_url, port=2200, username="airflow", pkey=mykey)
+    p.connect(host_server_url, port=2200, username="airflow", pkey=mykey)
     stdin, stdout, stderr = p.exec_command(f"python3 {docker_build_push_script} {moll_url} {dockerfile} {docker_registry_tag}")
     # assuming output is sent to stdout and exceptions to stderr
     # TODO parse result for raises

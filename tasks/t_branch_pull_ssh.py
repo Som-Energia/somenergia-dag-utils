@@ -5,7 +5,7 @@ import io
 
 class GitPullError(Exception): pass
 
-def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name):
+def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name, dag_id=None):
     p = paramiko.SSHClient()
     p.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     keyfile = io.StringIO(repo_server_key)
@@ -42,7 +42,7 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
 
     # image removal and build is not working atm
     print('dag id is {{ dag.dag_id}}')
-    if '{{ dag.dag_id }}' == 'dades_sandbox_dag':
+    if dag_id and dag_id == 'dades_sandbox_dag':
         return 'update_docker_image' if requirements_updated else task_name
     else:
         return task_name
@@ -54,7 +54,8 @@ def build_branch_pull_ssh_task(dag: DAG, task_name, repo_github_name) -> BranchP
         op_kwargs={ "repo_github_name": repo_github_name,
                     "repo_server_url": "{{ var.value.repo_server_url }}",
                     "repo_server_key": "{{ var.value.repo_server_key }}",
-                    "task_name": task_name},
+                    "task_name": task_name,
+                    "dag_id": dag.dag_id},
         do_xcom_push=False,
         dag=dag
     )

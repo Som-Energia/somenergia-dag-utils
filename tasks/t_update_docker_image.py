@@ -17,7 +17,7 @@ def update_docker_image_from_host_via_ssh(host_server_key, host_server_url, repo
     Then, the task will run in a DockerOperator who will download the image from the private registry
     if it doesn't have it. TODO: how will other molls know they have to update it?
     '''
-    dockerfile = f'/opt/airflow/repos/{repo_name}/Dockerfile'
+    dockerfile = f'/opt/airflow/repos/{repo_name}/'
     docker_registry_tag = f'{docker_registry}/{repo_name}'
     docker_build_push_script = '/opt/airflow/repos/docker-build-push/docker-build-push.py'
 

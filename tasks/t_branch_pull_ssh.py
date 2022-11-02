@@ -16,14 +16,16 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
 
     # TODO might be too fragile
     if txt_stderr and not (txt_stderr[0].startswith('remote') or txt_stderr[0].startswith('From')):
-        print (f"Stderr of git fetch returned {txt_stderr} and {stdout.readlines()}. {bool(txt_stderr)}")
+        print (f"Stderr of git fetch returned {txt_stderr} and {stdout.readlines()}.")
         raise GitPullError(txt_stderr)
+    else:
+        print (f"git fetch returned {txt_stderr} and {stdout.readlines()}.")
 
     stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
     txt_stdout = stdout.readlines()
     txt_stdout = "".join(txt_stdout)
     requirements_updated = len(txt_stdout) > 0
-    if txt_stderr:
+    if txt_stderr and not (txt_stderr[0].startswith('remote') or txt_stderr[0].startswith('From')):
         print (f"Stderr of git diff requirements returned {txt_stderr}. {bool(txt_stderr)}")
         raise GitPullError(txt_stderr)
     if requirements_updated:

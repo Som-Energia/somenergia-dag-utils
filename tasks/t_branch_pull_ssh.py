@@ -44,6 +44,8 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name,
     print(f'dag id is {dag_id}')
     if dag_id and dag_id == 'dades_sandbox_dag':
         print(f"Requirements updated? {requirements_updated}")
+        # TODO remove this force to update
+        return 'update_docker_image'
         return 'update_docker_image' if requirements_updated else task_name
     else:
         return task_name

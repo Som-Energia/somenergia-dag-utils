@@ -41,6 +41,7 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name)
     #Apareix quan fem molts git pull a la vegada
 
     # image removal and build is not working atm
+    print('dag id is {{ dag.dag_id}}')
     if '{{ dag.dag_id }}' == 'dades_sandbox_dag':
         return 'update_docker_image' if requirements_updated else task_name
     else:

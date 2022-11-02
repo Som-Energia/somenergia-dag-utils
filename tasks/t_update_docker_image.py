@@ -45,7 +45,7 @@ def build_update_image_task(dag: DAG, repo_name) -> PythonOperator:
             "host_server_url" : "{{ var.value.repo_server_url }}",
             "host_server_key": "{{ var.value.repo_server_key }}",
             "moll_url" : "{{ var.value.generic_moll_url }}",
-            "docker_registry": "{{ var.value.somenergia_docker_registry }}"
+            "docker_registry": "{{ conn.somenergia_registry.host }}"
         },
         trigger_rule='one_success',
         dag=dag,

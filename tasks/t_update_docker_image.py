@@ -18,7 +18,7 @@ def update_docker_image_from_host_via_ssh(host_server_key, host_server_url, repo
     if it doesn't have it. TODO: how will other molls know they have to update it?
     '''
     dockerfile = f'/opt/airflow/repos/{repo_name}/'
-    docker_registry_tag = f'{docker_registry}/{repo_name}'
+    docker_registry_tag = f'{docker_registry}/{repo_name}:latest'
     docker_build_push_script = '/opt/airflow/repos/docker-build-push/docker-build-push.py'
 
     p = paramiko.SSHClient()

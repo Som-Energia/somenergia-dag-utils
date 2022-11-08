@@ -14,14 +14,14 @@ def _process(portainer_key, remove_url):
     )
     r.raise_for_status()
 
-def build_remove_image_task(dag: DAG, repo_github_name) -> PythonOperator:
+def build_remove_image_task(dag: DAG, repo_name) -> PythonOperator:
 
     task_remove_image = PythonOperator(
         task_id='image_remove',
         python_callable=_process,
         op_kwargs={
             'portainer_key':"{{ var.value.portainer_api_key }}",
-            'remove_url': "{{ var.value.docker_base_remove_url }}/" + repo_github_name+ "-requirements:latest"
+            'remove_url': "{{ var.value.docker_base_remove_url }}/" + repo_name + "-requirements:latest"
         },
         dag=dag,
         trigger_rule='one_success',

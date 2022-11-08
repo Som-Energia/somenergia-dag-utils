@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 import requests
 
-def _process(repo_github_name, portainer_key, post_url):
+def _process(repo_name, portainer_key, post_url):
     r = requests.post(
             url=post_url,
             headers={
@@ -11,7 +11,7 @@ def _process(repo_github_name, portainer_key, post_url):
             },
             params={
                 't':'somenergia-jardiner-carter-requirements:latest',
-                'remote': f'https://github.com/Som-Energia/{repo_github_name}.git#main',
+                'remote': f'https://github.com/Som-Energia/{repo_name}.git#main',
                 'nocache': 'true'
             },
             data='{}',
@@ -19,13 +19,13 @@ def _process(repo_github_name, portainer_key, post_url):
     )
     r.raise_for_status()
 
-def build_image_build_task(dag: DAG, repo_github_name) -> PythonOperator:
+def build_image_build_task(dag: DAG, repo_name) -> PythonOperator:
 
     task_image_build = PythonOperator(
         task_id='image_build',
         python_callable=_process,
         op_kwargs={
-            'repo_github_name': repo_github_name,
+            'repo_name': repo_name,
             'portainer_key': '{{ var.value.portainer_api_key }}',
             'post_url': '{{ var.value.docker_build_url }}'
         },

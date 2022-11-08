@@ -5,13 +5,13 @@ import io
 
 class GitPullError(Exception): pass
 
-def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name, dag_id=None):
+def pull_repo_ssh(repo_name, repo_server_url, repo_server_key, task_name, dag_id=None):
     p = paramiko.SSHClient()
     p.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     keyfile = io.StringIO(repo_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
     p.connect(repo_server_url, port=2200, username="airflow", pkey=mykey)
-    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} fetch")
+    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_name} fetch")
     txt_stderr = stderr.readlines()
 
     # TODO might be too fragile
@@ -21,7 +21,7 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name,
     else:
         print (f"git fetch returned {txt_stderr} and {stdout.readlines()}.")
 
-    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} diff origin/main -- requirements.txt")
+    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_name} diff origin/main -- requirements.txt")
     txt_stdout = stdout.readlines()
     txt_stdout = "".join(txt_stdout)
     requirements_updated = len(txt_stdout) > 0
@@ -32,7 +32,7 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name,
         print (f"Stdout de git diff requirements retornat {txt_stdout} and needs update")
     else:
         print (f"Stdout de git diff requirements no ha retornat cap missatge {txt_stdout}. stdout {stdout.readlines()}")
-    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_github_name} pull")
+    stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_name} pull")
     txt_stderr = stderr.readlines()
     txt_stderr = "".join(txt_stderr)
     print (f"Stderr de git pull ha retornat {txt_stderr}")
@@ -48,11 +48,11 @@ def pull_repo_ssh(repo_github_name, repo_server_url, repo_server_key, task_name,
     else:
         return task_name
 
-def build_branch_pull_ssh_task(dag: DAG, task_name, repo_github_name) -> BranchPythonOperator:
+def build_branch_pull_ssh_task(dag: DAG, task_name, repo_name) -> BranchPythonOperator:
     branch_pull_ssh_task = BranchPythonOperator(
         task_id='git_pull_task',
         python_callable=pull_repo_ssh,
-        op_kwargs={ "repo_github_name": repo_github_name,
+        op_kwargs={ "repo_name": repo_name,
                     "repo_server_url": "{{ var.value.repo_server_url }}",
                     "repo_server_key": "{{ var.value.repo_server_key }}",
                     "task_name": task_name,

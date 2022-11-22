@@ -3,6 +3,9 @@ from airflow import DAG
 import paramiko
 import io
 
+from random import randint
+from time import sleep
+
 class GitPullError(Exception): pass
 
 def pull_repo_ssh(repo_name, repo_server_url, repo_server_key, task_name, dag_id=None):
@@ -11,6 +14,11 @@ def pull_repo_ssh(repo_name, repo_server_url, repo_server_key, task_name, dag_id
     keyfile = io.StringIO(repo_server_key)
     mykey = paramiko.RSAKey.from_private_key(keyfile)
     p.connect(repo_server_url, port=2200, username="airflow", pkey=mykey)
+
+    # randomly wait to prevent locks
+    # TODO should use a dedicated DAG for all alerts
+    sleep(randint(1,10))
+
     stdin, stdout, stderr = p.exec_command(f"git -C /opt/airflow/repos/{repo_name} fetch")
     txt_stderr = stderr.readlines()
 
